@@ -3,6 +3,7 @@ This repository contains the Fortran source codes and input files used to simula
 
 ----------------------------------------------------------------------------------------------------------------------------------
 Overview
+-------
 
 The code implements a voxel-based representation of the electrode microstructure, where each phase (gas, ionic conductor, and electronic conductor) is described by an independent resistive network in the three spatial directions.
 
@@ -366,4 +367,5 @@ avG.dat → gaseous potential (vOO)
 
 The subroutine also handles value normalization (e.g., replacing boundary potentials of 1 or 0 with 0.5 for display purposes).
 Additionally, the file alado.dat stores the grid dimensions (a, b) for reference.
+
 ----------------------------------------------------------------------------------------------------------------------------------

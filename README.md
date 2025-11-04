@@ -9,3 +9,22 @@ ait1.dat, alado.dat, av.dat, avG.dat, and avIO.dat.
 These files define the voxelized electrode structure and the corresponding physical parameters for the resistor-network simulation. The main program reads these files automatically during initialization.
 
 Once the files are in place, compile the Fortran source code and execute the resulting binary from the same directory. Output files containing the potential fields, current distributions, and total conductance are generated upon completion.
+
+Description of input and output files:
+
+The simulation requires several .dat files that define both the input parameters and the voxelized structure of the electrode:
+
+alado.dat – Contains the dimensions of the 3D matrix corresponding to the synthetic tomography used to generate the voxelized electrode.
+
+ait1.dat – Stores all relevant simulation parameters (e.g., conductivities, boundary conditions, iteration settings) along with the computed global results such as total conductance.
+
+av.dat – Represents a 2D cross-section of the electronic potential field extracted from the 3D tomography.
+
+avIO.dat – Represents a 2D cross-section of the ionic potential field.
+
+avG.dat – Represents a 2D cross-section of the gaseous phase concentration field.
+
+ac.dat – Corresponds to a 2D structural slice of the voxelized microstructure, useful for visualization or debugging.
+
+These files are generated or updated within the subroutine guardsimple, which handles the reading and writing of the simulation data during each computational cycle.
+

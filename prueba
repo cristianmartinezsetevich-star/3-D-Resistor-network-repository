@@ -1,1 +1,1465 @@
-fgdfg
+      program tresredes
+        integer frontera,triple,b,a
+        real    mr,ro,rmelect,impeso,lsss,pm prue(300),Dn,Def,utemp,ctmt
+        integer rof,roi,rov,rmf,rmi,rmv,rei,ref,rev,porf,pori,pov
+        integer ame,als,alsr,amels,ta,tb,tc,td,te,tf,tg,th,ti,pha,peco
+        real    ga,me,ls,ct,ctml,ctgm,temp,podos,Ccat,Di,lpix,apix,vpix
+        real    resCT,resinter,sigmae, sigmaO,multi,fara,Diu,finalunit
+        real    rabsor
+        character*8 date
+        character*10 timen
+        real    c(200,200,200)
+        real  per(200,200,200)
+        real   bo(200,200,200)
+        real   im(200,200,200)
+
+        real   rh(200,200,200)
+        real   rv(200,200,200)
+        real   rz(200,200,200)
+        real  rih(200,200,200)
+        real  riv(200,200,200)
+        real  riz(200,200,200)
+        real  rho(200,200,200)
+        real  rvo(200,200,200)
+        real  rzo(200,200,200)
+
+        real  rcv(200,200,200)
+        real  rco(200,200,200)
+
+        real*10   iORRe(200)
+        real*10   iORRg(200)
+        real*10   ih(200,200,200)
+        real*10   iv(200,200,200)
+        real*10   iz(200,200,200)
+        real*10  iih(200,200,200)
+        real*10  iiv(200,200,200)
+        real*10  iiz(200,200,200)
+        real*10  ioh(200,200,200)
+        real*10  iov(200,200,200)
+        real*10  ioz(200,200,200)
+
+        real*10    v(200,200,200)
+        real*10  vIO(200,200,200)
+        real*10  vOO(200,200,200)
+
+        real*10 itpb(200)
+        real*10 it,eit,itt,ittt
+
+        call date_and_time( date,timen)
+        write(*,*)'To=', timen
+        open (53, file ='ait1.dat', status= 'old' )
+      write(53,*)'Altura ','pO2 ','AdmiE- ','AdmiG ','AdmiO2- ','Error '
+     1 ,'Error ','Lado ','lpix ','Rg ','porosidad ','Ga-Diu ','Sigma-e '
+     2 ,'sigma-O2- ','CT-interfase ','CT-surface ','CT-abs ','CT ',
+     3'Temp ','sigmae ','sigmao ','resCT ','resinter ','rabsor ','Ccat '
+     4 ,'Dif '
+
+
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      ! Initialization of structural and simulation parameters:
+      
+        rmf=5
+        rmi=5
+        do rmv=rmi,rmf,2        ! Tama¤o del poro (diametro)(impares mejor que pares)
+
+        rof=10
+        roi=0
+        do rov=5,5,1        ! Cantidad de poros (porosidad)
+
+        ref=1
+        rei=1
+        do rev=rei,ref,1        ! Tama¤o de la particula infiltrada (diametro)
+
+        porf=100
+        pori=0
+        do pov=pori,pori,5      ! Porcentaje deimpregnacion sobre la maxima posible
+
+       ! TAMA¥OS DE FUERTE IMPACTO EN EL COMPUTO
+        do bv=2,2,2
+
+        b=20!1+ FLOOR(1.5**bv)       ! par, Dimensiones de trabajo de la matrix
+        a=80         ! i par, no depende de a
+
+        kk=5000   ! Numero de iteraciones en el metodo de relajacion
+
+
+       !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+       !Valores iniciales de las matrices y parametros
+        c=3       ! valor inicial (VI) de la matriz de materiales
+              ! VI de la matriz de potencial
+        bo=0      ! VI de matriz auxiliar de porocidad
+        im=0      ! VI de matriz auxiliar de impregnacion
+
+        ro=(0.000+rov)/rof     !  cantidad de gas (porosidad)
+        mr=rmv                 !  tama¤o de diametro del poro (mr)
+        rmelect=0.00+rev       !  tama¤o de la particula infiltrada
+        porcen=(pov+0.00)/porf !  Porcentaje a infiltrar sobre el maximo posible
+
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      ! !Physical parameters and unit definitions
+
+       do dii=2,2,1   ! el que se quiere variar
+       do diii=6,6,2  ! variacion de la pO2 (ordenes de magnitud)
+
+       temp =750
+       podos=0.21 !1/(10**diii)
+       utemp= 1000/(temp+273)
+
+        !tama¤o pixel
+        lpix=0.1               !tama¤o del lado del voxel en micrometros
+        apix=lpix*lpix         !area voxel
+        vpix=lpix*apix         !volumen voxel
+        fara=4*96485           !4x cte de faraday
+
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        !Physical parameters and unit definitions
+
+        sigmae  =0.8500*(10**(2*  (temp+273)/1275))*(podos**0.25)  !(1/ohm m)
+        sigmaO  =0.0035*(10**(2.5*(temp+273)/1275))*(podos**0.25)  !(1/ohm m)
+
+      resCT  = (1/(podos**0.25))*(5.93605*EXP(
+     1  (1.8*100000)/(8.61*(temp+273)))/1000000)*3.1416*0.006*0.006/4   !(ohm cm2)BSCF baunman 750C
+
+      resinter=(0.000537*EXP((1.2*100000)/(8.61*(temp+273))))
+     1 *3.1416*0.006*0.006/4                                            !(ohm cm2)BSCF baunman 750C
+
+      rabsor=((8.314*(temp+273))/((podos**0.5)*(fara*fara*0.25
+     1 )))*(1/0.000001)                                                    !(ohm cm2 tesis laura tabla??)  (su valor es de 0.01-0.1 ohm.cm2), kads=10-7 a 10-6
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+              !valores iniciales de concentraciones y difusividad
+       Ccat =podos*(101300)/((temp+273)*8.314)                            !Concentracion en el catodo (mol/m3)
+       Di   =0.00002*SQRT((temp+273)*(temp+273)
+     1  *(temp+273)/(298*298*298))  !Difusividad aire a T (0.2 cm2/s)
+
+       Dn  =(0.666*lpix*SQRT(8*8.314*(temp+273)/(3.14*0.029)))/1000000    !difusividAD de knudsen
+       Def =1/((1/Di)+(1/Dn))
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+       !ctgm multiplicando,fara multiplicando para obtener corriente, dividido apix/10000 0000 por el area axa del electrodo
+
+      ctgm=apix/(resCT *10000*10000*fara)                  !(1/ohm) transformando centimetros a micrones
+      ctmt=apix/(rabsor*10000*10000*fara)    !1/R-absorcion-disociativa multiplicado unidades
+      ct  =1/((1/ctmt)+(1/ctgm))
+
+        me=sigmae*apix/(lpix*1000000*ct*fara)            !(1/ohm)
+        ls=sigmaO*apix/(lpix*1000000*ct*fara)            !(1/ohm)
+      ctml=ls!apix/(resinter*10000*10000*ct*fara)        !miec-electrolito
+      Diu =Ccat*Di*apix/(lpix*1000000*ct)      !Unidades de Di, Ccat aparece para que Ccat sea 1 en la condicion de borde del electrodo
+      ga  =Diu
+
+         ct=1             !ct   es lo que pasa del lado gas         al ionico del miec
+       ctgm=ct
+
+       finalunit=1/(resCT+rabsor)              !ctgm multiplicando,fara multiplicando para obtener corriente, dividido apix/10000 0000 por el area axa del electrodo
+
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+       !Muestra valores iniciales
+       write(*,*)'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+     1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+        write(*,*)'   rm-poro=  porosidad=          b=      l(um)=
+     1  kk='
+        write(*,*) rmv,rov,b,lpix*b ,kk
+        write(*,*) ''
+
+
+       write(*,*) '    sigmae=         sigmaO=              resCT=
+     1 resinter=       temp=            pO2=  '
+       write(*,*) sigmae,sigmaO,resCT,resinter,temp,podos
+       write(*,*) ''
+
+       write(*,*) '        ga=             me=             ls=
+     1 ctml=            ct=             ctgm=           ctmt='
+       write(*,*) ga,me,ls,ctml,ct,apix/(resCT*10000*10000*fara),ctmt
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      ! Network Generation
+        call porosidad(a,b,c,mr,ro)
+        call front(a,b,c,bo,im,frontera,impeso,rmelect)
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        ! Network Generation"
+        call Resis(a,b,c,rh,rv,rz,ct,ls,me,ctml,ctgm,ga)               !matriz de R del metal
+        call ResisIO(a,b,c,rih,riv,riz,ct,ls,me,ctml,ctgm,ga)          !matriz de R del ion
+        call ResisOO(a,b,c,rho,rvo,rzo,ct,ls,me,ctml,ctgm,ga)
+        call ResisCT(a,b,c,rcv,ct,ls,me,ctml,ctgm,ga)
+        call ResisCO(a,b,c,rco,ct,ls,me,ctml,ctgm,ga)           !matriz de R del CT de electrones
+       !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+       !Relaxation Method and Current Calculation
+
+       call kir(a,b,v,vIO,vOO,rh,rv,rz,rih,riv,riz,rho,rvo,rzo,kk,bo,rcv
+     1 ,rco)
+100   call kirB(a,b,v,vIO,vOO,rh,rv,rz,rih,riv,riz,rho,rvo,rzo,kk,bo,rcv
+     1 ,rco)
+     
+       call corrientes(a,b,v,vIO,vOO,rv,rh,rz,riv,rih,riz,iv,ih,iz
+     1 ,iiv,iih,iiz,iov,ioh,ioz,rvo,rho,rzo)
+      ! call corrientORR(a,b,v,vIO,vOO,rcv,rco,iORRe,iORRg,finalunit)
+       call itotal(a,b,c,iv,ih,iz,iiv,iih,iiz,ioh,iov,ioz,it,eit,itt,
+     1  ittt,finalunit)
+
+       write(*,*)'porcentaje=',100*eit/it
+       if(abs(100*eit/it) >= 1)then                          !error porcentual
+       go to 100
+       end if
+       !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+       !GUADADDO DE DATOS
+       call guardit(a,b,rmv,pm,ro,rev,it,eit,itt,ittt,ga,ct,me,ls,ctml
+     1,ctgm,temp,podos,lpix,sigmae,sigmao,resCT,resinter,rabsor,Ccat,Di,
+     2 ctmt)  !GUARDA LA ARS Y LO PARAMETROS DE INTERES
+       !call guardsimple(a,b,c,rcv,riv,v,vIO,vOO,bo) !GUARDA UNA IMAGEN 2D DE LA MATRIZ
+       !Call guardcorrien(a,b,iv,ih,iz)                 !GUARDA LA CORRIENTE
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        end do !b
+        end do !por
+        end do !rev
+        end do !rov
+        end do !rmv
+        end do !dii
+        end do !diii
+        close (53)
+        call date_and_time( date,timen)
+
+        write(*,*)'Tf=', timen
+        pause
+        end
+       !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+
+       !SUBRUTINAS
+       !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+       ! Genera la Matriz Poros periodica horizontal
+       SUBROUTINE  porosidad(a,b,c,mr,ro)
+        integer a,b,x,y,z,i,j,k,mul,r,u,v,uv
+        real c(b,a,a),ran,ro,mr,roo,popo,mx
+
+        popo=2
+        densidad=0
+        roo=0
+        r = FLOOR(mr/2)
+
+        do while (ro>roo)
+        call random_number(ran)
+        y = 1+ FLOOR(a*ran)
+        call random_number(ran)
+        x = 1+ FLOOR(b*ran)
+        call random_number(ran)
+        z = 1+ FLOOR(a*ran)
+         if(mr==2)then
+         mul=0
+         else
+         mul=1
+         end if
+         if(MOD(mr,popo)==0)then
+             do i=x-r*mul, x+r
+             do j=y-r*mul, y+r
+             do k=z-r*mul, z+r
+      if(j>=1.and.i>=1.and.k>=1.and.j<=a.and.k<=a.and.i<=b.and.
+     1 c(i,j,k)/=1)then
+             mx=mul*((i-x)**2+(j-y)**2+(k-z)**2)
+             if (r*r > mx ) then
+             c(i,j,k)=1
+             densidad=densidad+1
+             roo=((densidad/(b*a*a)))
+             end if
+             end if
+             end do
+             end do
+             end do
+           else
+             do i=x-r, x+r
+             do j=y-r, y+r
+             do k=z-r, z+r
+      if(j>=1.and.i>=1.and.k>=1.and.j<=a.and.i<=b.and.k<=a.and.
+     1 c(i,j,k)/=1)then
+             mx=(i-x)**2+(j-y)**2+(k-z)**2
+             if (r*r >= (i-x)**2+(j-y)**2+(k-z)**2) then
+             c(i,j,k)=1
+             densidad=densidad+1
+             roo=((densidad/(b*a*a)))
+             end if
+             end if
+             end do
+             end do
+             end do
+        end if
+        end do
+
+
+
+       ! pasa electrolito2 a miec3
+        do v=1,a
+        do u=1,a
+        do uv=1,b
+        If(c(uv,v,u)==2)then
+        c(uv,v,u)=3
+        end if
+        end do
+        end do
+        end do
+
+        !Borde periodico
+        ! importante para las condiciones de borde periodicas
+        ! evita complicaciones de borde periodico al programar la relajacion
+        do  v=1,b
+        do  u=1,a
+        c(v,1,u)=c(v,a-1,u)
+        c(v,a,u)=c(v,2,u)
+        c(v,u,1)=c(v,u,a-1)
+        c(v,u,a)=c(v,u,2)
+        end do
+        end do
+
+        do v=1,a
+        do u=1,a
+        c(1,u,v)=2    !electrolito
+        !c(b,u,v)=3  !colector de corriente
+        end do
+        end do
+
+
+        !write(*,*) 'Densidad     =', (densidad/(b*a))
+       END SUBROUTINE
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+       !genera la matriz borde
+       SUBROUTINE  front(a,b,c,bo,im,frontera,impeso,rmelect)
+       integer a,b,frontera,u,v,w,mul,r,i,j,k
+       integer o,oou,ood,ouu,odd,oud,odu,ouo,odo
+       integer uoo,uou,uod,uuu,udd,uud,udu,uuo,udo
+       integer doo,dou,dod,duu,ddd,dud,ddu,duo,ddo
+       real c(b,a,a),bo(b,a,a),im(b,a,a),impeso,impre,rmelect,popo
+
+        popo=2
+        frontera=0
+        impre=0
+        r =  FLOOR(rmelect/2)
+
+        do i=2,b-1
+        do j=1,a
+        do k=1,a
+              o = c(i,j,k)
+              if (o==3)then
+
+              if(j==1.and.k==1)then
+              oou=c(i,j,k+1)
+              ood=c(i,j,a)
+              ouu=c(i,j+1,k+1)
+              odd=c(i,a,a)
+              oud=c(i,j+1,a)
+              odu=c(i,a,k+1)
+              ouo=c(i,j+1,k)
+              odo=c(i,a,k)
+              uoo=c(i+1,j,k)
+              uou=c(i+1,j,k+1)
+              uod=c(i+1,j,a)
+              uuu=c(i+1,j+1,k+1)
+              udd=c(i+1,a,a)
+              uud=c(i+1,j+1,a)
+              udu=c(i+1,a,k+1)
+              uuo=c(i+1,j+1,k)
+              udo=c(i+1,a,k)
+              doo=c(i-1,j,k)
+              dou=c(i-1,j,k+1)
+              dod=c(i-1,j,a)
+              duu=c(i-1,j+1,k+1)
+              ddd=c(i-1,a,a)
+              dud=c(i-1,j+1,a)
+              ddu=c(i-1,a,k+1)
+              duo=c(i-1,j+1,k)
+              ddo=c(i-1,a,k)
+              else
+              if(j==1.and.k==a)then
+              oou=c(i,j,1)
+              ood=c(i,j,k-1)
+              ouu=c(i,j+1,1)
+              odd=c(i,a,k-1)
+              oud=c(i,j+1,k-1)
+              odu=c(i,a,1)
+              ouo=c(i,j+1,k)
+              odo=c(i,a,k)
+              uoo=c(i+1,j,k)
+              uou=c(i+1,j,1)
+              uod=c(i+1,j,k-1)
+              uuu=c(i+1,j+1,1)
+              udd=c(i+1,a,k-1)
+              uud=c(i+1,j+1,k-1)
+              udu=c(i+1,a,1)
+              uuo=c(i+1,j+1,k)
+              udo=c(i+1,a,k)
+              doo=c(i-1,j,k)
+              dou=c(i-1,j,1)
+              dod=c(i-1,j,k-1)
+              duu=c(i-1,j+1,1)
+              ddd=c(i-1,a,k-1)
+              dud=c(i-1,j+1,k-1)
+              ddu=c(i-1,a,1)
+              duo=c(i-1,j+1,k)
+              ddo=c(i-1,a,k)
+              else
+              if(j==a.and.k==1)then
+              oou=c(i,j,k+1)
+              ood=c(i,j,a)
+              ouu=c(i,1,k+1)
+              odd=c(i,j-1,a)
+              oud=c(i,1,a)
+              odu=c(i,j-1,k+1)
+              ouo=c(i,1,k)
+              odo=c(i,j-1,k)
+              uoo=c(i+1,j,k)
+              uou=c(i+1,j,k+1)
+              uod=c(i+1,j,a)
+              uuu=c(i+1,1,k+1)
+              udd=c(i+1,j-1,a)
+              uud=c(i+1,1,a)
+              udu=c(i+1,j-1,k+1)
+              uuo=c(i+1,1,k)
+              udo=c(i+1,j-1,k)
+              doo=c(i-1,j,k)
+              dou=c(i-1,j,k+1)
+              dod=c(i-1,j,a)
+              duu=c(i-1,1,k+1)
+              ddd=c(i-1,j-1,a)
+              dud=c(i-1,1,a)
+              ddu=c(i-1,j-1,k+1)
+              duo=c(i-1,1,k)
+              ddo=c(i-1,j-1,k)
+              else
+              if(j==a.and.k==a)then
+              oou=c(i,j,1)
+              ood=c(i,j,k-1)
+              ouu=c(i,1,1)
+              odd=c(i,j-1,k-1)
+              oud=c(i,1,k-1)
+              odu=c(i,j-1,1)
+              ouo=c(i,1,k)
+              odo=c(i,j-1,k)
+              uoo=c(i+1,j,k)
+              uou=c(i+1,j,1)
+              uod=c(i+1,j,k-1)
+              uuu=c(i+1,1,1)
+              udd=c(i+1,j-1,k-1)
+              uud=c(i+1,1,k-1)
+              udu=c(i+1,j-1,1)
+              uuo=c(i+1,1,k)
+              udo=c(i+1,j-1,k)
+              doo=c(i-1,j,k)
+              dou=c(i-1,j,1)
+              dod=c(i-1,j,k-1)
+              duu=c(i-1,1,1)
+              ddd=c(i-1,j-1,k-1)
+              dud=c(i-1,1,k-1)
+              ddu=c(i-1,j-1,1)
+              duo=c(i-1,1,k)
+              ddo=c(i-1,j-1,k)
+              else
+              if(j==1.and.k/=a.and.k/=1)then
+              oou=c(i,j,k+1)
+              ood=c(i,j,k-1)
+              ouu=c(i,j+1,k+1)
+              odd=c(i,a,k-1)
+              oud=c(i,j+1,k-1)
+              odu=c(i,a,k+1)
+              ouo=c(i,j+1,k)
+              odo=c(i,a,k)
+              uoo=c(i+1,j,k)
+              uou=c(i+1,j,k+1)
+              uod=c(i+1,j,k-1)
+              uuu=c(i+1,j+1,k+1)
+              udd=c(i+1,a,k-1)
+              uud=c(i+1,j+1,k-1)
+              udu=c(i+1,a,k+1)
+              uuo=c(i+1,j+1,k)
+              udo=c(i+1,a,k)
+              doo=c(i-1,j,k)
+              dou=c(i-1,j,k+1)
+              dod=c(i-1,j,k-1)
+              duu=c(i-1,j+1,k+1)
+              ddd=c(i-1,a,k-1)
+              dud=c(i-1,j+1,k-1)
+              ddu=c(i-1,a,k+1)
+              duo=c(i-1,j+1,k)
+              ddo=c(i-1,a,k)
+              else
+              if(j==a.and.k/=a.and.k/=1)then
+              oou=c(i,j,k+1)
+              ood=c(i,j,k-1)
+              ouu=c(i,1,k+1)
+              odd=c(i,j-1,k-1)
+              oud=c(i,1,k-1)
+              odu=c(i,j-1,k+1)
+              ouo=c(i,1,k)
+              odo=c(i,j-1,k)
+              uoo=c(i+1,j,k)
+              uou=c(i+1,j,k+1)
+              uod=c(i+1,j,k-1)
+              uuu=c(i+1,1,k+1)
+              udd=c(i+1,j-1,k-1)
+              uud=c(i+1,1,k-1)
+              udu=c(i+1,j-1,k+1)
+              uuo=c(i+1,1,k)
+              udo=c(i+1,j-1,k)
+              doo=c(i-1,j,k)
+              dou=c(i-1,j,k+1)
+              dod=c(i-1,j,k-1)
+              duu=c(i-1,1,k+1)
+              ddd=c(i-1,j-1,k-1)
+              dud=c(i-1,1,k-1)
+              ddu=c(i-1,j-1,k+1)
+              duo=c(i-1,1,k)
+              ddo=c(i-1,j-1,k)
+              else
+              if(k==1.and.j/=a.and.j/=1)then
+              oou=c(i,j,k+1)
+              ood=c(i,j,a)
+              ouu=c(i,j+1,k+1)
+              odd=c(i,j-1,a)
+              oud=c(i,j+1,a)
+              odu=c(i,j-1,k+1)
+              ouo=c(i,j+1,k)
+              odo=c(i,j-1,k)
+              uoo=c(i+1,j,k)
+              uou=c(i+1,j,k+1)
+              uod=c(i+1,j,a)
+              uuu=c(i+1,j+1,k+1)
+              udd=c(i+1,j-1,a)
+              uud=c(i+1,j+1,a)
+              udu=c(i+1,j-1,k+1)
+              uuo=c(i+1,j+1,k)
+              udo=c(i+1,j-1,k)
+              doo=c(i-1,j,k)
+              dou=c(i-1,j,k+1)
+              dod=c(i-1,j,a)
+              duu=c(i-1,j+1,k+1)
+              ddd=c(i-1,j-1,a)
+              dud=c(i-1,j+1,a)
+              ddu=c(i-1,j-1,k+1)
+              duo=c(i-1,j+1,k)
+              ddo=c(i-1,j-1,k)
+              else
+              if(k==a.and.j/=a.and.j/=1)then
+              oou=c(i,j,1)
+              ood=c(i,j,k-1)
+              ouu=c(i,j+1,1)
+              odd=c(i,j-1,k-1)
+              oud=c(i,j+1,k-1)
+              odu=c(i,j-1,1)
+              ouo=c(i,j+1,k)
+              odo=c(i,j-1,k)
+              uoo=c(i+1,j,k)
+              uou=c(i+1,j,1)
+              uod=c(i+1,j,k-1)
+              uuu=c(i+1,j+1,1)
+              udd=c(i+1,j-1,k-1)
+              uud=c(i+1,j+1,k-1)
+              udu=c(i+1,j-1,1)
+              uuo=c(i+1,j+1,k)
+              udo=c(i+1,j-1,k)
+              doo=c(i-1,j,k)
+              dou=c(i-1,j,1)
+              dod=c(i-1,j,k-1)
+              duu=c(i-1,j+1,1)
+              ddd=c(i-1,j-1,k-1)
+              dud=c(i-1,j+1,k-1)
+              ddu=c(i-1,j-1,1)
+              duo=c(i-1,j+1,k)
+              ddo=c(i-1,j-1,k)
+              else
+              oou=c(i,j,k+1)
+              ood=c(i,j,k-1)
+              ouu=c(i,j+1,k+1)
+              odd=c(i,j-1,k-1)
+              oud=c(i,j+1,k-1)
+              odu=c(i,j-1,k+1)
+              ouo=c(i,j+1,k)
+              odo=c(i,j-1,k)
+              uoo=c(i+1,j,k)
+              uou=c(i+1,j,k+1)
+              uod=c(i+1,j,k-1)
+              uuu=c(i+1,j+1,k+1)
+              udd=c(i+1,j-1,k-1)
+              uud=c(i+1,j+1,k-1)
+              udu=c(i+1,j-1,k+1)
+              uuo=c(i+1,j+1,k)
+              udo=c(i+1,j-1,k)
+              doo=c(i-1,j,k)
+              dou=c(i-1,j,k+1)
+              dod=c(i-1,j,k-1)
+              duu=c(i-1,j+1,k+1)
+              ddd=c(i-1,j-1,k-1)
+              dud=c(i-1,j+1,k-1)
+              ddu=c(i-1,j-1,k+1)
+              duo=c(i-1,j+1,k)
+              ddo=c(i-1,j-1,k)
+              end if
+              end if
+              end if
+              end if
+              end if
+              end if
+              end if
+              end if
+
+      if (o/=doo.or.o/=dou.or.o/=dod.or.o/=duu.or.o/=ddd.or.o/=dud.or.
+     1     o/=ddu.or.o/=duo.or.o/=ddo.or.
+     2     o/=uoo.or.o/=uou.or.o/=uod.or.o/=uuu.or.o/=udd.or.o/=uud.or.
+     3     o/=udu.or.o/=uuo.or.o/=udo.or.
+     4     o/=oou.or.o/=ood.or.o/=ouu.or.o/=odd.or.o/=oud.or.o/=odu.or.
+     5     o/=ouo.or.o/=odo
+     6  )then
+                   bo(i,j,k)=1
+                   frontera=frontera+bo(i,j,k)
+       !impregnacion Maxima
+                    if(rmelect==2)then
+                    mul=0
+                    else
+                    mul=1
+                    end if
+                if(MOD(rmelect,popo)==0)then
+                   do v=i-r*mul,i+r*mul
+                   do u=j-r*mul,j+r*mul
+                   do w=k-r*mul,k+r*mul
+             if (v >=1.and.u>=1.and.w>=1.and.v<=b.and.u<=a.and.w<=a)then
+             if (r*r > mul*((v-i)**2+(u-j)**2+(w-k)**2)) then
+                      if (im(v,u,w)/=1.and. c(v,u,w)==1 )then
+                      im(v,u,w)=1
+                      impre=impre+1
+                      end if
+                   end if
+                   end if
+                   end do
+                   end do
+                   end do
+                 else
+                   do v=i-r*mul,i+r
+                   do u=j-r*mul,j+r
+                   do w=k-r*mul,k+r
+             if (v >=1.and.u>=1.and.w>=1.and.v<=b.and.u<=a.and.w<=a)then
+             if (r*r >= mul*(v-i)**2+(u-j)**2+(w-k)**2) then
+                      if (im(v,u,w)/=1.and. c(v,u,w)==1 )then
+                      im(v,u,w)=1
+                      impre=impre+1
+                      end if
+                   end if
+                   end if
+                   end do
+                   end do
+                   end do
+                 end if
+                   !fin impre MAX
+               end if
+               end if
+        end do
+        end do
+        end do
+
+
+          do v=1,b,1
+          do u=1,a,1
+          do w=1,a,1
+            If(bo(v,u,w)==0)then
+                  bo(v,u,w)=c(v,u,w)
+            else
+                  bo(v,u,w)=4
+            end if
+          end do
+          end do
+          end do
+
+        !write(*,*) 'Frontera     =', frontera
+        !write(*,*) 'imprenacion MAX     =', impre/(a*a*b)
+        impeso= impre/(a*a*b)
+        END SUBROUTINE
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      SUBROUTINE Resis(a,b,c,rh,rv,rz,ct,ls,me,ctml,ctgm,ga)
+
+      integer a,b,u,v,w
+      real c(b,a,a)
+      real rh(b,a,a),rv(b,a,a),rz(b,a,a)
+      real ga,me,ctml,ctgm,ls,ct,con(3,3),tri(3,3)
+
+                      ! 20 nm
+          rh=0
+          rv=0
+          rz=0
+
+          con(1,1)=0 !gas-gas
+          con(2,2)=0 !lsgm-lsgm
+          con(3,3)=me !met-met
+
+          con(1,2)=0 !gas-lsgm
+          con(2,1)=0 !lsgm-gas
+
+          con(1,3)=0 !gas-met
+          con(3,1)=0 !met-gas
+
+          con(2,3)=0 !lsgm-met
+          con(3,2)=0 !met-lsgm
+
+        do i=1,b-1
+        do j=1,a-1
+        do k=1,a-1
+        u=c(i,j,k)
+        v=c(i,j+1,k)
+        rh(i,j,k)=con(u,v)
+        u=c(i,j,k)
+        v=c(i+1,j,k)
+        rv(i,j,k)=con(u,v)
+        u=c(i,j,k)
+        v=c(i,j,k+1)
+        rz(i,j,k)=con(u,v)
+        end do
+        end do
+        end do
+
+      END SUBROUTINE
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      SUBROUTINE ResisIO(a,b,c,rih,riv,riz,ct,ls,me,ctml,ctgm,ga)
+      integer a,b,u,v,w
+      real c(b,a,a)
+      real rih(b,a,a),riv(b,a,a),riz(b,a,a)
+      real ga,me,ctml,ctgm,ls,ct,con(3,3),tri(3,3)
+
+                     ! 20 nm
+          rih=0
+          riv=0
+          riz=0
+
+          con(1,1)=0 !gas-gas
+          con(2,2)=ls !lsgm-lsgm ! no importa nunca hay 2 con 2 en el miec
+          con(3,3)=ls !met-met
+
+          con(1,2)=0 !gas-lsgm
+          con(2,1)=0 !lsgm-gas
+
+          con(1,3)=0 !gas-met
+          con(3,1)=0 !met-gas
+
+          con(2,3)=ctml !lsgm-met !es la red ionica entre
+          con(3,2)=ctml !met-lsgm
+
+        do i=1,b-1
+        do j=1,a-1
+        do k=1,a-1
+        u=c(i,j,k)
+        v=c(i,j+1,k)
+        rih(i,j,k)=con(u,v)
+        u=c(i,j,k)
+        v=c(i+1,j,k)
+        riv(i,j,k)=con(u,v)
+        u=c(i,j,k)
+        v=c(i,j,k+1)
+        riz(i,j,k)=con(u,v)
+        end do
+        end do
+        end do
+
+      END SUBROUTINE
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      SUBROUTINE ResisOO(a,b,c,rho,rvo,rzo,ct,ls,me,ctml,ctgm,ga)
+      integer a,b,u,v,w
+      real c(b,a,a)
+      real rho(b,a,a),rvo(b,a,a),rzo(b,a,a)
+      real ga,me,ctml,ctgm,ls,ct,con(3,3),tri(3,3)
+
+                     ! 20 nm
+          rho=0
+          rvo=0
+          rzo=0
+
+          con(1,1)=ga !gas-gas
+          con(2,2)=0 !lsgm-lsgm
+          con(3,3)=0 !met-met
+
+          con(1,2)=0 !gas-lsgm
+          con(2,1)=0 !lsgm-gas
+
+          con(1,3)=ga !gas-met
+          con(3,1)=ga !met-gas
+
+          con(2,3)=0 !lsgm-met !es la red ionica entre
+          con(3,2)=0 !met-lsgm
+
+        do i=1,b-1
+        do j=1,a-1
+        do k=1,a-1
+        u=c(i,j,k)
+        v=c(i,j+1,k)
+        rho(i,j,k)=con(u,v)
+        u=c(i,j,k)
+        v=c(i+1,j,k)
+        rvo(i,j,k)=con(u,v)
+        u=c(i,j,k)
+        v=c(i,j,k+1)
+        rzo(i,j,k)=con(u,v)
+        end do
+        end do
+        end do
+
+      END SUBROUTINE
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+      SUBROUTINE ResisCT(a,b,c,rcv,ct,ls,me,ctml,ctgm,ga)
+      integer a,b,u,v,w
+      real c(b,a,a)
+      real rcv(b,a,a)
+      real ga,me,ctml,ctgm,ls,ct,con(3,3),tri(3,3)
+
+                      ! 20 nm
+          rcv=0
+
+          con(1,1)=0 !gas-gas
+          con(2,2)=0 !lsgm-lsgm
+          con(3,3)=0 !met-met
+
+          con(1,2)=0 !gas-lsgm
+          con(2,1)=0 !lsgm-gas
+
+          con(1,3)=ctgm !gas-met
+          con(3,1)=ctgm !met-gas
+
+          con(2,3)=0 !lsgm-met
+          con(3,2)=0!met-lsgm
+
+        do i=2,b-1
+        do j=2,a-1
+        do k=2,a-1
+        if(c(i,j,k)==3)then
+        u=c(i,j,k)
+        v=c(i,j+1,k)
+        rcv(i,j,k)=con(u,v)+rcv(i,j,k)
+        u=c(i,j,k)
+        v=c(i+1,j,k)
+        rcv(i,j,k)=con(u,v)+rcv(i,j,k)
+        u=c(i,j,k)
+        v=c(i,j,k+1)
+        rcv(i,j,k)=con(u,v)+rcv(i,j,k)
+        u=c(i,j,k)
+        v=c(i,j-1,k)
+        rcv(i,j,k)=con(u,v)+rcv(i,j,k)
+        u=c(i,j,k)
+        v=c(i-1,j,k)
+        rcv(i,j,k)=con(u,v)+rcv(i,j,k)
+        u=c(i,j,k)
+        v=c(i,j,k-1)
+        rcv(i,j,k)=con(u,v)+rcv(i,j,k)
+        end if
+        end do
+        end do
+        end do
+
+      END SUBROUTINE
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      SUBROUTINE ResisCO(a,b,c,rco,ct,ls,me,ctml,ctgm,ga)
+      integer a,b,u,v,w
+      real c(b,a,a)
+      real rco(b,a,a)
+      real ga,me,ctml,ctgm,ls,ct,con(3,3),tri(3,3)
+                              ! 20 nm
+          rco=0
+
+          con(1,1)=0 !gas-gas
+          con(2,2)=0 !lsgm-lsgm
+          con(3,3)=0 !met-met
+
+          con(1,2)=0 !gas-lsgm
+          con(2,1)=0 !lsgm-gas
+
+          con(1,3)=ct !gas-met
+          con(3,1)=ct !met-gas
+
+          con(2,3)=0 !lsgm-met
+          con(3,2)=0 !met-lsgm
+
+        do i=2,b-1
+        do j=2,a-1
+        do k=2,a-1
+        if(c(i,j,k)==3)then
+        u=c(i,j,k)
+        v=c(i,j+1,k)
+        rco(i,j,k)=con(u,v)+rco(i,j,k)
+        u=c(i,j,k)
+        v=c(i+1,j,k)
+        rco(i,j,k)=con(u,v)+rco(i,j,k)
+        u=c(i,j,k)
+        v=c(i,j,k+1)
+        rco(i,j,k)=con(u,v)+rco(i,j,k)
+        u=c(i,j,k)
+        v=c(i,j-1,k)
+        rco(i,j,k)=con(u,v)+rco(i,j,k)
+        u=c(i,j,k)
+        v=c(i-1,j,k)
+        rco(i,j,k)=con(u,v)+rco(i,j,k)
+        u=c(i,j,k)
+        v=c(i,j,k-1)
+        rco(i,j,k)=con(u,v)+rco(i,j,k)
+        end if
+        end do
+        end do
+        end do
+
+      END SUBROUTINE
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      SUBROUTINE kir(a,b,v,vIO,vOO,rh,rv,rz,rih,riv,riz,rho,rvo,rzo,kk
+     1,bo,rcv,rco)
+
+       integer a,b,kk,i,j,w
+       real vol,omeg,pvG,pvv
+       real   rh(b,a,a),   rv(b,a,a),   rz(b,a,a)
+       real  rih(b,a,a),  riv(b,a,a),  riz(b,a,a)
+       real  rho(b,a,a),  rvo(b,a,a),  rzo(b,a,a)
+       real    bo(b,a,a),  rcv(b,a,a),  rco(b,a,a)
+       real*10 v(b,a,a),  vIO(b,a,a),  vOO(b,a,a),idvie, idvig,t
+
+       omeg=6/(3+(SQRT(9-
+     1(( COS(3.1416/(a-1))+COS(3.1416/(a-1))+COS(3.1416/(b-1)) )**2))))
+
+        omeg=1.0
+        write(*,*)'omeg', omeg
+        idvie= 0
+        idvig= 0
+
+        pvv=1
+        pvG=1
+        pIO=0
+
+        vOO=pvG
+        v=pvv
+        vIO=pIO
+
+      !RELAJACION
+      do k=1,kk
+
+      !general
+      do i=2, b-1
+      do j=2, a-1
+      do w=2, a-1
+
+      !electronica
+      if(bo(i,j,w)==3.or.bo(i,j,w)==4)then
+      t= rv(i,j,w)   +rv(i-1,j,w) +rh(i,j,w)
+     1  +rh(i,j-1,w) +rz(i,j,w)   +rz(i,j,w-1)  +rcv(i,j,w)
+      if(t==0)then
+      v(i,j,w)=      v(i,j,w)+omeg*((
+     1  v(i+1,j,w)  +v(i-1,j,w)  +v(i,j-1,w)
+     2 +v(i,j+1,w)  +v(i,j,w-1)  +v(i,j,w+1)
+     3 +vIO(i,j,w)  -7*v(i,j,w))/7)
+      else
+      v(i,j,w)=     v(i,j,w)+omeg*((
+     1  rv(i,j,w)  *v(i+1,j,w)+ rv(i-1,j,w)*v(i-1,j,w)
+     2 +rh(i,j-1,w)*v(i,j-1,w)+ rh(i,j,w)  *v(i,j+1,w)
+     3 +rz(i,j,w-1)*v(i,j,w-1)+ rz(i,j,w)  *v(i,j,w+1)
+     4 +rcv(i,j,w) *vIO(i,j,w)           -t*v(i,j,w))/t )
+      end if
+      end if
+
+      !gas
+       if(bo(i,j,w)==1.or.bo(i,j,w)==4)then
+      t= rvo(i,j,w)   +rvo(i-1,j,w) +rho(i,j,w)
+     1  +rho(i,j-1,w) +rzo(i,j,w)   +rzo(i,j,w-1) +rco(i,j,w)
+      if(t==0)then
+        vOO(i,j,w)=     vOO(i,j,w)+omeg*((
+     1  vOO(i+1,j,w)   +vOO(i-1,j,w) +vOO(i,j-1,w)
+     2 +vOO(i,j+1,w)   +vOO(i,j,w-1) +vOO(i,j,w+1)
+     3 +  vIO(i,j,w)      -7*vOO(i,j,w))/7)      !
+      else
+        vOO(i,j,w)=  vOO(i,j,w)+omeg*((
+     1 +rvo(i,j,w)  *vOO(i+1,j,w)+ rvo(i-1,j,w)*vOO(i-1,j,w)
+     2 +rho(i,j-1,w)*vOO(i,j-1,w)+ rho(i,j,w)  *vOO(i,j+1,w)
+     3 +rzo(i,j,w-1)*vOO(i,j,w-1)+ rzo(i,j,w)  *vOO(i,j,w+1)
+     4 +rco(i,j,w)    *vIO(i,j,w)
+     5 -           t*vOO(i,j,w))/t)
+      end if
+      end if
+      !ionica
+      if(bo(i,j,w)==3.or.bo(i,j,w)==4)then
+      t= riv(i,j,w)   +riv(i-1,j,w) +rih(i,j,w)   + rco(i,j,w)
+     1  +rih(i,j-1,w) +riz(i,j,w)   +riz(i,j,w-1) + rcv(i,j,w)
+      if(t==0)then
+        vIO(i,j,w)=     vIO(i,j,w)+omeg*((
+     1  vIO(i+1,j,w)   +vIO(i-1,j,w) +vIO(i,j-1,w)
+     2 +vIO(i,j+1,w)   +vIO(i,j,w-1) +vIO(i,j,w+1)
+     3 +  vOO(i,j,w)   +v(i,j,w)      -8*vIO(i,j,w))/8)
+      else
+        vIO(i,j,w)=  vIO(i,j,w)+omeg*((
+     1 +riv(i,j,w)  *vIO(i+1,j,w)+ riv(i-1,j,w)*vIO(i-1,j,w)
+     2 +rih(i,j-1,w)*vIO(i,j-1,w)+ rih(i,j,w)  *vIO(i,j+1,w)
+     3 +riz(i,j,w-1)*vIO(i,j,w-1)+ riz(i,j,w)  *vIO(i,j,w+1)  !
+     4 +rco(i,j,w)    *vOO(i,j,w)+ rcv(i,j,w)    *v(i,j,w)
+     5 -           t*vIO(i,j,w))/t)
+      end if
+      end if
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      if(k>kk/2)then
+      if(rcv(i,j,w)/=0.or.rco(i,j,w)/=0)then
+        idvie= rcv(i,j,w)* (  v(i,j,w)-vIO(i,j,w))
+        idvig= rco(i,j,w)* (vOO(i,j,w)-vIO(i,j,w))
+
+       if(idvig >0.and. idvie>0)then
+         if(idvig < idvie)then
+         rcv(i,j,w)=idvig/(v(i,j,w)-vIO(i,j,w))
+         end if
+         if(idvig > idvie)then
+         rco(i,j,w)=idvie/(vOO(i,j,w)-vIO(i,j,w))
+         end if
+       end if
+
+       if(idvig <=0.or.idvie<=0)then
+
+         ! esta parte hace que no se tenga el codigo MIEC y fuerza a ser cero a la transferencia de carga de la que no es cero
+         rcv(i,j,w)=0
+         rco(i,j,w)=0
+       end if
+
+       end if
+       end if !kk
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+      end do  !w
+      end do  !j
+      !bordes periodicos Laterales
+                 do j=1,a
+                 v(i,j,a)  =   v(i,j,2)
+                 v(i,j,1)  =   v(i,j,a-1)
+                 vIO(i,j,a)= vIO(i,j,2)
+                 vIO(i,j,1)= vIO(i,j,a-1)
+                 vOO(i,j,a)= vOO(i,j,2)
+                 vOO(i,j,1)= vOO(i,j,a-1)
+
+                 end do !j
+
+                 do w=1,a
+                 v(i,a,w)  =  v(i,2  ,w)
+                 v(i,1,w)  =  v(i,a-1,w)
+                 vIO(i,a,w)=vIO(i,2  ,w)
+                 vIO(i,1,w)=vIO(i,a-1,w)
+                 vOO(i,a,w)=vOO(i,2  ,w)
+                 vOO(i,1,w)=vOO(i,a-1,w)
+
+                 end do !w
+
+       !Borde fijos, tapa y base
+                 do j=1,a
+                 do w=1,a
+                 v(b,j,w)  =pvv
+                 v(1,j,w)  =v(2,j,w)        ! no hay delta V , no hay corriente
+                 vIO(1,j,w)=pIO
+                 vIO(b,j,w)=vIO(b-1,j,w)
+                 vOO(b,j,w)=pvG
+                 vOO(1,j,w)=vOO(2,j,w)
+                 end do
+                 end do
+
+      end do  !i
+
+      end do !kk
+
+      END SUBROUTINE
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+       !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      SUBROUTINE kirB(a,b,v,vIO,vOO,rh,rv,rz,rih,riv,riz,rho,rvo,rzo,kk
+     1,bo,rcv,rco)
+
+       integer a,b,kk,i,j,w
+       real vol,omeg,pvG,pvv
+       real   rh(b,a,a),   rv(b,a,a),   rz(b,a,a)
+       real  rih(b,a,a),  riv(b,a,a),  riz(b,a,a)
+       real  rho(b,a,a),  rvo(b,a,a),  rzo(b,a,a)
+       real    bo(b,a,a),  rcv(b,a,a),  rco(b,a,a)
+       real*10 v(b,a,a),  vIO(b,a,a),  vOO(b,a,a),idvie, idvig,t
+
+       omeg=6/(3+(SQRT(9-
+     1(( COS(3.1416/(a-1))+COS(3.1416/(a-1))+COS(3.1416/(b-1)) )**2))))
+
+        omeg=1.0
+        write(*,*)'omeg', omeg
+        idvie= 0
+        idvig= 0
+
+        pvv=1
+        pvG=1
+        pIO=0
+
+
+
+      !RELAJACION
+      do k=1,kk
+
+      !general
+      do i=2, b-1
+      do j=2, a-1
+      do w=2, a-1
+
+      !electronica
+      if(bo(i,j,w)==3.or.bo(i,j,w)==4)then
+      t= rv(i,j,w)   +rv(i-1,j,w) +rh(i,j,w)
+     1  +rh(i,j-1,w) +rz(i,j,w)   +rz(i,j,w-1)  +rcv(i,j,w)
+      if(t==0)then
+      v(i,j,w)=      v(i,j,w)+omeg*((
+     1  v(i+1,j,w)  +v(i-1,j,w)  +v(i,j-1,w)
+     2 +v(i,j+1,w)  +v(i,j,w-1)  +v(i,j,w+1)
+     3 +vIO(i,j,w)  -7*v(i,j,w))/7)
+      else
+      v(i,j,w)=     v(i,j,w)+omeg*((
+     1  rv(i,j,w)  *v(i+1,j,w)+ rv(i-1,j,w)*v(i-1,j,w)
+     2 +rh(i,j-1,w)*v(i,j-1,w)+ rh(i,j,w)  *v(i,j+1,w)
+     3 +rz(i,j,w-1)*v(i,j,w-1)+ rz(i,j,w)  *v(i,j,w+1)
+     4 +rcv(i,j,w) *vIO(i,j,w)           -t*v(i,j,w))/t )
+      end if
+      end if
+
+      !gas
+       if(bo(i,j,w)==1.or.bo(i,j,w)==4)then
+      t= rvo(i,j,w)   +rvo(i-1,j,w) +rho(i,j,w)
+     1  +rho(i,j-1,w) +rzo(i,j,w)   +rzo(i,j,w-1) +rco(i,j,w)
+      if(t==0)then
+        vOO(i,j,w)=     vOO(i,j,w)+omeg*((
+     1  vOO(i+1,j,w)   +vOO(i-1,j,w) +vOO(i,j-1,w)
+     2 +vOO(i,j+1,w)   +vOO(i,j,w-1) +vOO(i,j,w+1)
+     3 +  vIO(i,j,w)      -7*vOO(i,j,w))/7)      !
+      else
+        vOO(i,j,w)=  vOO(i,j,w)+omeg*((
+     1 +rvo(i,j,w)  *vOO(i+1,j,w)+ rvo(i-1,j,w)*vOO(i-1,j,w)
+     2 +rho(i,j-1,w)*vOO(i,j-1,w)+ rho(i,j,w)  *vOO(i,j+1,w)
+     3 +rzo(i,j,w-1)*vOO(i,j,w-1)+ rzo(i,j,w)  *vOO(i,j,w+1)
+     4 +rco(i,j,w)    *vIO(i,j,w)
+     5 -           t*vOO(i,j,w))/t)
+      end if
+      end if
+      !ionica
+      if(bo(i,j,w)==3.or.bo(i,j,w)==4)then
+      t= riv(i,j,w)   +riv(i-1,j,w) +rih(i,j,w)   + rco(i,j,w)
+     1  +rih(i,j-1,w) +riz(i,j,w)   +riz(i,j,w-1) + rcv(i,j,w)
+      if(t==0)then
+        vIO(i,j,w)=     vIO(i,j,w)+omeg*((
+     1  vIO(i+1,j,w)   +vIO(i-1,j,w) +vIO(i,j-1,w)
+     2 +vIO(i,j+1,w)   +vIO(i,j,w-1) +vIO(i,j,w+1)
+     3 +  vOO(i,j,w)   +v(i,j,w)      -8*vIO(i,j,w))/8)
+      else
+        vIO(i,j,w)=  vIO(i,j,w)+omeg*((
+     1 +riv(i,j,w)  *vIO(i+1,j,w)+ riv(i-1,j,w)*vIO(i-1,j,w)
+     2 +rih(i,j-1,w)*vIO(i,j-1,w)+ rih(i,j,w)  *vIO(i,j+1,w)
+     3 +riz(i,j,w-1)*vIO(i,j,w-1)+ riz(i,j,w)  *vIO(i,j,w+1)  !
+     4 +rco(i,j,w)    *vOO(i,j,w)+ rcv(i,j,w)    *v(i,j,w)
+     5 -           t*vIO(i,j,w))/t)
+      end if
+      end if
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      if(k>kk/2)then
+      if(rcv(i,j,w)/=0.or.rco(i,j,w)/=0)then
+        idvie= rcv(i,j,w)* (  v(i,j,w)-vIO(i,j,w))
+        idvig= rco(i,j,w)* (vOO(i,j,w)-vIO(i,j,w))
+
+       if(idvig >0.and. idvie>0)then
+         if(idvig < idvie)then
+         rcv(i,j,w)=idvig/(v(i,j,w)-vIO(i,j,w))
+         end if
+         if(idvig > idvie)then
+         rco(i,j,w)=idvie/(vOO(i,j,w)-vIO(i,j,w))
+         end if
+       end if
+
+       if(idvig <=0.or.idvie<=0)then
+
+         ! esta parte hace que no se tenga el codigo MIEC y fuerza a ser cero a la transferencia de carga de la que no es cero
+         rcv(i,j,w)=0
+         rco(i,j,w)=0
+       end if
+
+       end if
+       end if !kk
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+      end do  !w
+      end do  !j
+      !bordes periodicos Laterales
+                 do j=1,a
+                 v(i,j,a)  =   v(i,j,2)
+                 v(i,j,1)  =   v(i,j,a-1)
+                 vIO(i,j,a)= vIO(i,j,2)
+                 vIO(i,j,1)= vIO(i,j,a-1)
+                 vOO(i,j,a)= vOO(i,j,2)
+                 vOO(i,j,1)= vOO(i,j,a-1)
+
+                 end do !j
+
+                 do w=1,a
+                 v(i,a,w)  =  v(i,2  ,w)
+                 v(i,1,w)  =  v(i,a-1,w)
+                 vIO(i,a,w)=vIO(i,2  ,w)
+                 vIO(i,1,w)=vIO(i,a-1,w)
+                 vOO(i,a,w)=vOO(i,2  ,w)
+                 vOO(i,1,w)=vOO(i,a-1,w)
+
+                 end do !w
+
+       !Borde fijos, tapa y base
+                 do j=1,a
+                 do w=1,a
+                 v(b,j,w)  =pvv
+                 v(1,j,w)  =v(2,j,w)        ! no hay delta V , no hay corriente
+                 vIO(1,j,w)=pIO
+                 vIO(b,j,w)=vIO(b-1,j,w)
+                 vOO(b,j,w)=pvG
+                 vOO(1,j,w)=vOO(2,j,w)
+                 end do
+                 end do
+
+      end do  !i
+
+      end do !kk
+
+      END SUBROUTINE
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+      SUBROUTINE corrientes(a,b,v,vIO,vOO,rv,rh,rz,riv,rih,riz,iv,ih,iz
+     1 ,iiv,iih,iiz,iov,ioh,ioz,rvo,rho,rzo)
+      integer a,b,i,j,k
+      real*10   v(b,a,a), ih(b,a,a), iv(b,a,a), iz(b,a,a)
+      real*10 vIO(b,a,a),iih(b,a,a),iiv(b,a,a),iiz(b,a,a)
+      real*10 vOO(b,a,a),ioh(b,a,a),iov(b,a,a),ioz(b,a,a)
+      real  rh(b,a,a), rv(b,a,a), rz(b,a,a)
+      real rih(b,a,a),riv(b,a,a),riz(b,a,a)
+      real rho(b,a,a),rvo(b,a,a),rzo(b,a,a)
+
+      iv=0
+      ih=0
+      iz=0
+      iiv=0
+      iih=0
+      iiz=0
+                                                   !general
+        do i=1,b-1
+        do j=1,a-1
+        do k=1,a-1
+           iv(i,j,k)=rv(i,j,k)*(v(i,j,k)-v(i+1,j,k))
+           ih(i,j,k)=rh(i,j,k)*(v(i,j,k)-v(i,j+1,k))
+           iz(i,j,k)=rz(i,j,k)*(v(i,j,k)-v(i,j,k+1))
+        end do
+        end do
+        end do
+
+        do i=1,b-1
+        do j=1,a-1
+        do k=1,a-1
+           iiv(i,j,k)=riv(i,j,k)*(vIO(i,j,k)-vIO(i+1,j,k))
+           iih(i,j,k)=rih(i,j,k)*(vIO(i,j,k)-vIO(i,j+1,k))
+           iiz(i,j,k)=riz(i,j,k)*(vIO(i,j,k)-vIO(i,j,k+1))
+        end do
+        end do
+        end do
+
+        do i=1,b-1
+        do j=1,a-1
+        do k=1,a-1
+           iov(i,j,k)=rvo(i,j,k)*(vOO(i,j,k)-vOO(i+1,j,k))
+           ioh(i,j,k)=rho(i,j,k)*(vOO(i,j,k)-vOO(i,j+1,k))
+           ioz(i,j,k)=rzo(i,j,k)*(vOO(i,j,k)-vOO(i,j,k+1))
+        end do
+        end do
+        end do
+
+
+       END SUBROUTINE
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      SUBROUTINE corrientORR(a,b,v,vIO,vOO,rcv,rco,iORRe,iORRg,
+     1 finalunit)
+      integer a,b,i,j,k
+      real*10   v(b,a,a), iORRe(b) , iORRg(b),sume, sumg
+      real*10 vIO(b,a,a)
+      real*10 vOO(b,a,a)
+      real  rco(b,a,a), rcv(b,a,a)
+
+            iORRe=0
+            iORRg=0
+                                                             !general
+        do i=1,b
+            iORRe(i)=0
+            iORRg(i)=0
+        do j=2,a-1
+        do k=2,a-1
+            iORRe(i)=iORRe(i)+(rcv(i,j,k)*(v(i,j,k)-vIO(i,j,k)))
+            iORRg(i)=iORRg(i)+(rco(i,j,k)*(vOO(i,j,k)-vIO(i,j,k)))
+        end do
+        end do
+            open (36, file ='ORR.dat', status= 'old' )
+            write(36,*) i,finalunit*iORRe(i)/((a-2)*(a-2)),
+     1                    finalunit*iORRg(i)/((a-2)*(a-2))
+            write(*,*) iORRe(i), iORRg(i)
+        end do
+
+          sume=0
+          sumg=0
+        Do i=1,b
+          sume=iORRe(i)+sume
+          sumg=iORRg(i)+sumg
+       end do
+           write(*,*) 'sume=',finalunit*sume/((a-2)*(a-2))
+     1                       ,finalunit*sumg/((a-2)*(a-2))
+
+      END SUBROUTINE
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      SUBROUTINE itotal(a,b,c,iv,ih,iz,iiv,iih,iiz,ioh,iov,ioz,it,eit,
+     1 itt,ittt,finalunit)
+        integer a,b
+        real*10  iv(b,a,a), ih(b,a,a), iz(b,a,a)
+        real*10 iiv(b,a,a),iih(b,a,a),iiz(b,a,a)
+        real*10 iov(b,a,a),ioh(b,a,a),ioz(b,a,a)
+        real*10 it,ith,sum,itt,ittt,itttt,eit,iut,iiut
+        real c(b,a,a),finalunit
+           it=0
+           itt=0
+           ittt=0
+           itttt=0
+           iut=0
+           iiut=0
+           eit=0
+
+           do j=2,a-1
+           do k=2,a-1
+
+            it    = iv(b-1,j,k) +it  !corriente que entra por el colector de corriente
+            itt   =iov(b-1,j,k) +itt
+            ittt  =  iiv(1,j,k) +ittt !corriente en el fondo del electrolito
+
+           end do
+           end do
+
+
+
+       eit= finalunit*( it+itt-ittt)/((a-2)*(a-2))
+        it= finalunit*(-it/((a-2)*(a-2)))
+       itt= finalunit*(-itt/((a-2)*(a-2)))
+      ittt= finalunit*(-0.5*ittt/((a-2)*(a-2)))
+
+      write(*,*)''
+      write(*,*)'                    Ie=                           Ig=
+     1                         Io= '
+      write(*,*)  it,itt,ittt
+       write(*,*)'            error:i-ge=                    error:i-g='
+      write(*,*) eit,it-itt
+
+       END SUBROUTINE
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      SUBROUTINE guardit(a,b,rmv,pm,ro,rev,it,eit,itt,ittt,ga,ct,me,ls,
+     1 ctml,ctgm,temp,podos,lpix,sigmae,sigmao,resCT,resinter,rabsor,
+     2 Ccat,Di,ctmt)
+      integer a,b,rmv,rev,peco
+      real*10 it,eit,itt,ittt
+      real pm,ro,mr,rmelect,porcen,ga,ct,me,ls,ctml,ctgm,temp,podos,lpix
+      real sigmae,sigmao,resCT,resinter,rabsor,Ccat,Di,ctmt
+
+      open (53, file ='ait1.dat', status= 'old' )
+      write(53,*)b,podos,it,itt,ittt,eit,itt-it,a,lpix,rmv,ro,ga,me,ls
+     1 ,ctml,ctgm,ctmt,ct,temp,sigmae,sigmao,resCT,resinter,rabsor,Ccat
+     2 ,Di
+
+
+      END SUBROUTINE
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      SUBROUTINE guardcorrien(a,b,iv,ih,iz)
+       integer a,b
+       real*10 iv(b,a,a),ih(b,a,a),iz(b,a,a)
+
+        open (54, file ='acorrien1.dat', status= 'old' )
+             do  i=1,b
+             do  j=1,a
+             write(54,*)  iv(1:a,i,j)
+             end do
+             end do
+          close (54)
+        open (55, file ='acorrien2.dat', status= 'old' )
+             do  i=1,b
+             do  j=1,a
+             write(55,*)  ih(1:a,i,j)
+             end do
+             end do
+         close (55)
+         open (56, file ='acorrien3.dat', status= 'old' )
+             do  i=1,b
+             do  j=1,a
+             write(56,*)  iz(1:a,i,j)
+             end do
+             end do
+         close (56)
+
+
+       END SUBROUTINE
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+       SUBROUTINE guardsimple(a,b,c,rcv,riv,v,vIO,vOO,bo)
+       integer a,b ,corte
+       real c(b,a,a),itpb(300),bo(b,a,a)
+       real rcv(b,a,a),riv(b,a,a)
+       real*10    v(b,a,a)
+       real*10  vIO(b,a,a)
+       real*10  vOO(b,a,a)
+
+       corte=10
+
+       do i=1,b-1
+       do j=1,a
+       if (v(i,corte,j)==1)then
+           v(i,corte,j)=0.5
+       end if
+       end do
+       end do
+
+       do i=2,b
+       do j=1,a
+       if (vIO(i,corte,j)==0)then
+           vIO(i,corte,j)=0.5
+       end if
+       end do
+       end do
+
+       do i=1,b-1
+       do j=1,a
+       if (vOO(i,corte,j)==1.or.bo(i,corte,j)==4)then
+           vOO(i,corte,j)=0.5
+       end if
+       end do
+       end do
+
+
+
+         open (56, file ='ac.dat', status= 'old' )
+           do  i=1,a
+                write(56,*) c(1:b,corte,i)
+           end do
+        ! close (56)
+
+
+          open (57, file ='av.dat', status= 'old' )
+           do  i=1,a
+                write(57,*) v(1:b,corte,i)
+           end do
+        ! close (57)
+
+         open (58, file ='avIO.dat', status= 'old' )
+           do  i=1,a
+                write(58,*) vIO(1:b,corte,i)
+           end do
+        ! close (59)
+
+          open (59, file ='avG.dat', status= 'old' )
+           do  i=1,a
+                write(59,*) vOO(1:b,corte,i)
+           end do
+        ! close (59)
+
+
+         open (55, file ='alado.dat', status= 'old' )
+               write(55,*)  a
+               write(55,*)  b
+       !  close (58)
+        ! pause
+
+      END SUBROUTINE
+      !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+

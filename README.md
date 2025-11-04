@@ -1,4 +1,7 @@
 This repository contains the Fortran source codes and input files used to simulate mixed ionic–electronic conducting (MIEC) electrodes voxelized into three-dimensional resistor networks. The numerical model resolves the coupled transport of electrons, oxygen ions, and gaseous species, incorporating the oxygen reduction reaction (ORR) through an interfacial resistance formalism. These simulations were developed in the context of the manuscript “Methodology for the simulation of voxelized MIEC electrodes using resistor networks: coupling between electronic, ionic, and gaseous transport.” The provided scripts allow the reproduction of conductance–pO₂ curves and the exploration of the impact of microstructural parameters on the overall electrochemical performance.
+
+Instructions for running the simulations:
+
 The codes were developed and tested using the Force Fortran compiler on Windows, which is freely available for download from its official website. Any standard Fortran compiler (e.g., gfortran) can also be used to compile and execute the programs.
 
 To run the simulations, create a working directory containing the required input data files:

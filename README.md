@@ -1,4 +1,6 @@
+
 This repository contains the Fortran source codes and input files used to simulate mixed ionic–electronic conducting (MIEC) electrodes voxelized into three-dimensional resistor networks. The numerical model resolves the coupled transport of electrons, oxygen ions, and gaseous species, incorporating the oxygen reduction reaction (ORR) through an interfacial resistance formalism. These simulations were developed in the context of the manuscript “Methodology for the simulation of voxelized MIEC electrodes using resistor networks: coupling between electronic, ionic, and gaseous transport.” The provided scripts allow the reproduction of conductance–pO₂ curves and the exploration of the impact of microstructural parameters on the overall electrochemical performance.Simplified 3D Resistor Network Simulation Code. This repository contains a simplified version of the 3D resistor network model used to simulate Mixed Ionic–Electronic Conductor (MIEC) electrodes. It is intended as a practical example that preserves the essential physical coupling mechanisms of the full model while remaining easy to read and modify.
+
 ----------------------------------------------------------------------------------------------------------------------------------
 Overview
 
@@ -26,6 +28,7 @@ Cristian Martínez-Setevich
 CITEDEF / CONICET — Argentina
 2025
 ------------------------------------------------------------------------------------------------------------------------------------
+
 Instructions for running the simulations:
 
 The codes were developed and tested using the Force Fortran compiler on Windows, which is freely available for download from its official website. Any standard Fortran compiler (e.g., gfortran) can also be used to compile and execute the programs.
@@ -35,7 +38,9 @@ ait1.dat, alado.dat, av.dat, avG.dat, and avIO.dat.
 These files define the voxelized electrode structure and the corresponding physical parameters for the resistor-network simulation. The main program reads these files automatically during initialization.
 
 Once the files are in place, compile the Fortran source code and execute the resulting binary from the same directory. Output files containing the potential fields, current distributions, and total conductance are generated upon completion.
+
 ------------------------------------------------------------------------------------------------------------------------------------
+
 Description of input and output files:
 
 The simulation requires several .dat files that define both the input parameters and the voxelized structure of the electrode:
@@ -53,7 +58,9 @@ avG.dat – Represents a 2D cross-section of the gaseous phase concentration fie
 ac.dat – Corresponds to a 2D structural slice of the voxelized microstructure, useful for visualization or debugging.
 
 These files are generated or updated within the subroutine guardsimple, which handles the reading and writing of the simulation data during each computational cycle.
+
 ------------------------------------------------------------------------------------------------------------------------------------
+
 Code structure and main variables:
 
 The main program, tresredes, initializes the data structures required to simulate a voxelized MIEC (Mixed Ionic–Electronic Conductor) electrode using three coupled resistor networks representing electronic, ionic, and gaseous transport.
@@ -89,7 +96,9 @@ Variables related to potential and current fields (v, vIO, vOO, ih, iv, iz, etc.
 Variables defining resistances, diffusion coefficients, and structural properties (rh, rv, rz, sigmae, sigmaO, etc.) are defined as real (single precision), as their variations are typically less sensitive to round-off errors.
 
 The program uses a structured memory layout where each physical quantity is stored in a separate 3D array, allowing efficient indexing of neighboring voxels during the iterative computation of currents and potentials in the three transport networks. This organization simplifies the implementation of coupling terms and facilitates post-processing or visualization of any individual field.
+
 -----------------------------------------------------------------------------------------------------------------------------------
+
 Initialization of structural and simulation parameters:
 
 The section labeled “Initial values” defines the structural parameters of the synthetic electrode and the iteration settings used in the relaxation method that solves the coupled resistor networks.
@@ -123,7 +132,9 @@ rmelect = rev → size of the infiltrated particle.
 porcen = pov / porf → fractional impregnation relative to the maximum.
 
 These parameters define the initial state of the 3D synthetic microstructure prior to assigning resistances and solving the potential and current fields.
+
 -----------------------------------------------------------------------------------------------------------------------------------
+
 Physical parameters and unit definitions
 
 This section defines the physical parameters governing electronic, ionic, and gaseous transport in the BSCF (Ba₀.₅Sr₀.₅Co₀.₈Fe₀.₂O₃₋δ) cathode, as well as the corresponding units and temperature dependencies used in the resistor-network model.
@@ -192,7 +203,9 @@ ga – Effective gaseous parameter, set equal to Diu.
 finalunit – Total interfacial conductance considering both charge-transfer (resCT) and adsorption (rabsor) resistances in series.
 
 The block concludes by printing the initialized values to the console, providing a summary of the main parameters (σ_e, σ_O, resCT, resinter, T, pO₂, ga, me, ls, etc.) before the iterative solver begins.
+
 -----------------------------------------------------------------------------------------------------------------------------------
+
 After computing the main physical quantities (conductivities, interfacial resistances, concentrations, and diffusivities), the code prints the initial parameters for verification. This diagnostic block ensures consistency of units and magnitudes before building the resistor networks.
 
 rmv, rov, b, lpix*b, kk: mean resistance, porosity, voxel domain size, electrode length (µm), and simulation index.
@@ -206,7 +219,9 @@ temp, podos: operating temperature and oxygen partial pressure.
 ga, me, ls, ctml, ct, ctgm, ctmt: coupling and scaling coefficients for the electronic, ionic, and gas-phase sub-networks.
 
 The write(*,*) commands generate a console output summarizing these values, allowing quick validation of input and scaling parameters before the simulation starts.
+
 ----------------------------------------------------------------------------------------------------------------------------------
+
 Subroutine Calls: Network Generation
 
 After initializing all physical parameters, the code calls a series of subroutines to construct the 3D resistor networks representing the mixed-conducting (MIEC) and gas phases:
@@ -224,7 +239,9 @@ ResisOO(...) – Constructs the gas-phase diffusion network.
 ResisCT(...)** and **ResisCO(...)` – Define the charge-transfer coupling resistances between electronic/ionic and gas/electrode interfaces.
 
 Each subroutine fills the corresponding resistance matrices (e.g., rh, rv, rz for electrons, rih, riv, riz for ions), which are later used to solve the coupled transport and reaction processes in the MIEC electrode.
+
 ---------------------------------------------------------------------------------------------------------------------------------
+
 Relaxation Method and Current Calculation
 
 After constructing the resistance networks, the program computes the electrochemical potentials and current distributions using an iterative relaxation method (kir, kirB).
@@ -235,7 +252,9 @@ A convergence criterion is applied (if(abs(100*eit/it) >= 5) go to 100) to ensur
 Finally, the results and key simulation parameters are saved with guardit, and optional routines can store 2D slices or current maps (guardsimple, guardcorrien).
 
 The program concludes by closing all loops and recording the final timestamp.
+
 ----------------------------------------------------------------------------------------------------------------------------------
+
 SUBROUTINE porosidad
 
 This routine generates the 3D porous structure used as the synthetic tomography input for the simulation.
@@ -244,7 +263,9 @@ It randomly places spherical pores of radius mr/2 within a cubic domain until th
 Periodic boundary conditions are applied on all faces to avoid edge artifacts during relaxation.
 The electrolyte region (value = 2) is converted to the MIEC phase (value = 3) where appropriate.
 The resulting 3D matrix c(i,j,k) defines the spatial distribution of solid and pore phases in the voxelized electrode.
+
 ----------------------------------------------------------------------------------------------------------------------------------
+
 SUBROUTINE front
 
 This subroutine identifies the interfacial (boundary) voxels between the MIEC and the pore phases in the 3D structure generated previously.
@@ -259,7 +280,9 @@ Increments the total boundary count (frontera),
 Optionally generates a spherical impregnation region around it in the matrix im, simulating infiltration of a secondary phase of radius rmelect.
 
 Finally, it computes the maximum impregnation fraction (impeso = impre / (a*a*b)), which represents the relative volume of infiltrated regions.
+
 ----------------------------------------------------------------------------------------------------------------------------------
+
 SUBROUTINE Resis, ResisIO, ResisOO, ResisCT, and ResisCO
 
 These subroutines generate the 3D resistor networks corresponding to each transport path within the voxelized MIEC electrode structure.
@@ -276,7 +299,9 @@ ResisCT → Charge-transfer network (rcv) coupling gas and metal interfaces via 
 ResisCO → Charge-transfer network (rco) for metal–gas coupling governed by ct.
 
 Each routine loops over all neighboring voxels (x, y, z directions) and fills the corresponding resistance matrices using phase-dependent coupling rules defined in con(u,v).
+
 ----------------------------------------------------------------------------------------------------------------------------------
+
 SUBROUTINE kir, corrientes, corrientORR, and itotal
 
 These routines perform the potential relaxation and current evaluation across the three coupled resistor networks (electronic, ionic, and gaseous).
@@ -297,7 +322,9 @@ corrientORR → Evaluates the oxygen reduction reaction (ORR) current at each pl
 The results (electronic and gaseous contributions) are written to the output file ORR.dat.
 
 itotal → Integrates all current contributions to obtain the total current density and consistency check between electronic and gaseous fluxes at the current collector and electrolyte interface.
+
 ---------------------------------------------------------------------------------------------------------------------------------
+
 SUBROUTINE guardit
 
 This routine saves the global simulation parameters and total current results to the file ait1.dat.

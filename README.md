@@ -146,32 +146,25 @@ vpix = lpix × apix → voxel volume.
 
 fara = 4 × 96485 C/mol, accounting for the four-electron transfer in the oxygen reduction reaction (ORR).
 
-Electrical conductivities (BSCF)
+Electrical conductivities for BSCF(S/cm)
 
-Electronic conductivity:
+Electronic conductivity: sigmao,  from experimental data of Choi et al. doi: 10.1149/2.017202jes
 
-𝜎𝑒=0.8500×10E(2(𝑇+273)/1275)×𝑝𝑂2E(0.25)
-
-Ionic conductivity:
-
-𝜎𝑂2−=0.0035×10E(2.5(𝑇+273)/1275)×𝑝𝑂2E(0.25)
-
-
-These empirical relations reproduce the temperature and 𝑝𝑂2 dependence reported for BSCF at 750 °C.
+Ionic conductivity:sigmae, from experimental data of JUng et al. doi: 10.1016/j.ssi.2011.09.023.
 
 Interfacial resistances (Ω·cm²)
 
-resCT – Charge-transfer resistance associated with the ORR and activation energy (Baumann, 2006).
+resCT – Charge-transfer resistance associated with the ORR and activation energy, from experimental data of Baumann et al. doi: 10.1016/j.ssi.2006.07.057.
 
-resinter – Interfacial resistance between the MIEC electrode and the electrolyte (Baumann, 2006).
+resinter – Interfacial resistance between the MIEC electrode and the electrolyte, from experimental data of Baumann et al. doi: 10.1016/j.ssi.2006.07.057.
 
-rabsor – Resistance associated with surface adsorption and dissociative oxygen incorporation; values typically range from 0.01–0.1 Ω·cm².
+rabsor – Resistance associated with surface adsorption and dissociative oxygen incorporation; values typically range from 0.01–0.1 Ω·cm². doi: 10.1149/1.3511770
 
 Gas-phase parameters
 
 Ccat – Gas concentration at the cathode surface, computed from the ideal gas law.
 
-Di – Molecular diffusion coefficient in air, scaled with 𝑇E(3/2).
+Di – Molecular diffusion coefficient in air.
 
 Dn – Knudsen diffusivity based on the voxel size and molecular mass of oxygen.
 

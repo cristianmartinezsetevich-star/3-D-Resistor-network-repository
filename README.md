@@ -1,5 +1,5 @@
 
-This repository contains the Fortran source codes and input files used to simulate mixed ionic–electronic conducting (MIEC) electrodes voxelized into three-dimensional resistor networks. The numerical model resolves the coupled transport of electrons, oxygen ions, and gaseous species, incorporating the oxygen reduction reaction (ORR) through an interfacial resistance . These simulations were developed in the context of the manuscript “Methodology for the simulation of voxelized MIEC electrodes using resistor networks: coupling between electronic, ionic, and gaseous transport.” The provided scripts allow the reproduction of conductance–pO₂ curves and the exploration of the impact of microstructural parameters on the overall electrochemical performance. Simplified 3D Resistor Network Simulation Code. This repository contains a simplified version of the 3D resistor network model used to simulate Mixed Ionic–Electronic Conductor (MIEC) electrodes. It is intended as a practical example that preserves the essential physical coupling mechanisms of the full model while remaining easy to read and modify.
+This repository contains the Fortran source codes and output files used to simulate mixed ionic–electronic conducting (MIEC) electrodes voxelized into three-dimensional resistor networks. The numerical model resolves the coupled transport of electrons, oxygen ions, and gaseous species, incorporating the oxygen reduction reaction (ORR) through an interfacial resistance . These simulations were developed in the context of the manuscript “Methodology for the simulation of voxelized MIEC electrodes using resistor networks: coupling between electronic, ionic, and gaseous transport.” The provided scripts allow the reproduction of conductance curves and the exploration of the impact of microstructural parameters on the overall electrochemical performance. This repository contains a simplified version of the 3D resistor network model used to simulate Mixed Ionic–Electronic Conductor (MIEC) electrodes. It is intended as a practical example that preserves the essential physical coupling mechanisms of the full model while remaining easy to read and modify.
 
 ----------------------------------------------------------------------------------------------------------------------------------
 Overview
@@ -8,24 +8,16 @@ Overview
 The code implements a voxel-based representation of the electrode microstructure, where each phase (gas, ionic conductor, and electronic conductor) is described by an independent resistive network in the three spatial directions.
 
 It includes routines for:
-
 Generating or importing a random or tomographic porous structure
-
 Building resistor matrices for each transport network
-
 Solving the potential and current distributions through iterative relaxation
-
 Computing and saving total and partial currents (electronic, ionic, and gas)
-
 Exporting data and potential maps for post-processing or visualization
-
-Purpose
-
-This version has been simplified for demonstration purposes. However, it retains the core logic of the coupled transport processes and can be used as a foundation for further development or adaptation.
 
 Author
 
 Cristian Martínez-Setevich
+cristian.martinez.setevich@gmail.com
 CITEDEF / CONICET — Argentina
 2025
 
@@ -35,9 +27,9 @@ Instructions for running the simulations:
 
 The codes were developed and tested using the Force Fortran compiler on Windows, which is freely available for download from its official website. Any standard Fortran compiler (e.g., gfortran) can also be used to compile and execute the programs.
 
-To run the simulations, create a working directory containing the required input data files:
+To run the simulations, create a working directory containing the required empty output data files:
 ait1.dat, alado.dat, av.dat, avG.dat, and avIO.dat.
-These files define the voxelized electrode structure and the corresponding physical parameters for the resistor-network simulation. The main program reads these files automatically during initialization.
+These files define the voxelized electrode structure and the corresponding physical parameters for the resistor-network simulation. The main program automatically writes these files during execution.
 
 Once the files are in place, compile the Fortran source code and execute the resulting binary from the same directory. Output files containing the potential fields, current distributions, and total conductance are generated upon completion.
 
@@ -45,21 +37,16 @@ Once the files are in place, compile the Fortran source code and execute the res
 
 Description of input and output files:
 
-The simulation requires several .dat files that define both the input parameters and the voxelized structure of the electrode:
+The simulation generates .dat files containing the parameters and the voxelized electrode structure:
 
 alado.dat – Contains the dimensions of the 3D matrix corresponding to the synthetic tomography used to generate the voxelized electrode.
-
 ait1.dat – Stores all relevant simulation parameters (e.g., conductivities, boundary conditions, iteration settings) along with the computed global results such as total conductance.
-
 av.dat – Represents a 2D cross-section of the electronic potential field extracted from the 3D tomography.
-
 avIO.dat – Represents a 2D cross-section of the ionic potential field.
-
 avG.dat – Represents a 2D cross-section of the gaseous phase concentration field.
-
 ac.dat – Corresponds to a 2D structural slice of the voxelized microstructure, useful for visualization or debugging.
 
-These files are generated or updated within the subroutine guardsimple, which handles the reading and writing of the simulation data during each computational cycle.
+These files are generated or updated within some subroutines, which handles the writing of the simulation data during each computational cycle.
 
 ------------------------------------------------------------------------------------------------------------------------------------
 

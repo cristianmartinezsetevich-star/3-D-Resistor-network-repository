@@ -114,8 +114,8 @@
       !XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
         !Physical parameters and unit definitions
 
-        sigmae  =0.8500*(10**(2*  (temp+273)/1275))*(podos**0.25)  !alta  !(1/ohm cm)
-       !sigmae=20.7*podos**0.14    ! jung                          !baja
+        sigmae  =(0.026temp)+(-0.04temp+60.1)**(podos**0.25)  !alta  !(1/ohm cm)
+       !sigmae=(-0.0065*temp+40.15)*podos**0.13    ! jung                          !baja
       !sigmae =(0.026*(temp)-11)+((-0.04*(temp)+60.1)*podos**0.25)  !700grados  jung et al.
 
       sigmaO=73*2.7182**((-0.42
